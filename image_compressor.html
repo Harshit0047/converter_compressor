@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Image Compressor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    #titleBar {
+      background-color: #f2f2f2;
+      padding: 10px;
+      margin-bottom: 150px;
+      width: 100%;
+    }
+
+    #titleBar ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    #titleBar li {
+      margin-right: 10px;
+    }
+
+    #titleBar a {
+      text-decoration: none;
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    #titleBar a:hover {
+      background-color: #ddd;
+    }
+
+    #content {
+      flex-grow: 1;
+      padding: 20px;
+    }
+
+    #footer {
+      background-color: #f2f2f2;
+      padding: 10px;
+      text-align: left;
+      margin-top: 100px;
+      width: 100%;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #dropBox {
+      width: 300px;
+      min-height: 200px;
+      border: 2px dashed #aaa;
+      border-radius: 10px;
+      text-align: center;
+      padding-top: 60px;
+      cursor: pointer;
+      position: relative;
+      transition: min-height 0.3s ease-in-out, width 0.3s ease-in-out;
+      margin: 60px;
+    }
+    
+    #dropBox.uploaded {
+      min-height: auto;
+      width: fit-content;
+    }
+    
+    #dropBox.dragging {
+      border-color: #444;
+    }
+    
+    #dropBox input[type="file"] {
+      display: none;
+    }
+    
+    #dropBox .choose-file-button {
+      background-color: #4285f4;
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    #dropBox .drop-text {
+      display: block;
+      font-size: 16px;
+      color: #777;
+      margin-bottom: 20px;
+    }
+    
+
+    #previewImage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin-top: 20px;
+      display: none;
+    }
+
+    #previewImage img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    #sizeInput {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #sizeInput select {
+      padding: 4px;
+      font-size: 14px;
+    }
+
+    #convertButton {
+      margin-top: 10px;
+      padding: 8px 20px;
+      background-color: #4285f4;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="titleBar">
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="image_compressor.html">Image Compressor</a></li>
+      <li><a href="image_converter.html">Image Converter</a></li>
+    </ul>
+  </div>
+  <div id="container">
+    <div id="dropBox">
+      <div class="drop-text">Drag and drop an image here</div>
+      <label for="inputFile" class="choose-file-button">Choose File</label>
+      <input type="file" id="inputFile" accept="image/jpeg, image/png" />
+      <div id="previewImage">
+        <img id="previewImg" src="#" alt="Preview" />
+      </div>
+    </div>
+
+    <div id="sizeInput">
+      <label for="desiredSize">Desired Size:</label>
+      <input type="number" id="desiredSize" min="1" step="1" />
+      <select id="sizeUnit">
+        <option value="KB">KB</option>
+        <option value="MB">MB</option>
+      </select>
+    </div>
+
+    <button id="convertButton">Convert</button>
+  </div>
+  <div id="footer">
+    &copy; 2023 Your Website Name. All rights reserved.
+  </div>
+
+  <script>
+    function compressImage() {
+      var inputFile = document.getElementById('inputFile');
+      var desiredSizeInput = document.getElementById('desiredSize');
+      var sizeUnitSelect = document.getElementById('sizeUnit');
+
+      if (inputFile.files && inputFile.files[0]) {
+        var file = inputFile.files[0];
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+          var img = new Image();
+          img.src = e.target.result;
+
+          img.onload = function () {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+
+            // Calculate the desired size in bytes
+            var desiredSize = parseInt(desiredSizeInput.value);
+            var sizeUnit = sizeUnitSelect.value;
+            if (sizeUnit === 'MB') {
+              desiredSize *= 1024 * 1024;
+            } else {
+              desiredSize *= 1024;
+            }
+
+            // Start the compression process
+            var compressedSize = Infinity;
+            var quality = 1;
+
+            while (compressedSize > desiredSize && quality >= 0) {
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              var dataURL = canvas.toDataURL('image/jpeg', quality);
+
+              // Calculate the compressed file size
+              var compressedData = atob(dataURL.split(',')[1]);
+              compressedSize = compressedData.length;
+
+              // Reduce the quality for the next iteration
+              quality -= 0.1;
+            }
+
+            // Create a blob from the compressed data URL
+            var blob = dataURLToBlob(dataURL);
+
+            // Create a download link for the compressed image
+            var downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = 'compressed_image.jpg';
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function showPreviewImage(input) {
+      var previewImg = document.getElementById('previewImg');
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          previewImg.src = e.target.result;
+          document.getElementById('previewImage').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      var files = e.dataTransfer.files;
+      var inputFile = document.getElementById('inputFile');
+      inputFile.files = files;
+      document.getElementById('dropBox').classList.add('uploaded');
+      showPreviewImage(inputFile);
+      adjustDropBoxSize();
+      hideDragText();
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'copy';
+      document.getElementById('dropBox').classList.add('dragging');
+    }
+
+    function handleDragLeave(e) {
+      e.stopPropagation();
+      document.getElementById('dropBox').classList.remove('dragging');
+    }
+
+    function adjustDropBoxSize() {
+      var dropBox = document.getElementById('dropBox');
+      var inputFile = document.getElementById('inputFile');
+      if (inputFile.files && inputFile.files[0]) {
+        var img = new Image();
+        img.src = URL.createObjectURL(inputFile.files[0]);
+        img.onload = function () {
+          var aspectRatio = img.width / img.height;
+          var dropBoxWidth = dropBox.offsetWidth;
+          var dropBoxHeight = dropBoxWidth / aspectRatio;
+          dropBox.style.height = dropBoxHeight + 'px';
+          dropBox.style.width = dropBoxWidth + 'px';
+        };
+      }
+    }
+
+    function hideDragText() {
+      var dropText = document.querySelector('#dropBox .drop-text');
+      dropText.style.display = 'none';
+    }
+
+    function dataURLToBlob(dataURL) {
+      var parts = dataURL.split(',');
+      var contentType = parts[0].split(':')[1];
+      var raw = window.atob(parts[1]);
+      var rawLength = raw.length;
+      var uInt8Array = new Uint8Array(rawLength);
+
+      for (var i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+      }
+
+      return new Blob([uInt8Array], { type: contentType });
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+      var dropBox = document.getElementById('dropBox');
+      dropBox.addEventListener('drop', handleDrop);
+      dropBox.addEventListener('dragover', handleDragOver);
+      dropBox.addEventListener('dragleave', handleDragLeave);
+
+      var convertButton = document.getElementById('convertButton');
+      convertButton.addEventListener('click', compressImage);
+
+      var inputFile = document.getElementById('inputFile');
+      inputFile.addEventListener('change', function () {
+        showPreviewImage(this);
+        document.getElementById('dropBox').classList.add('uploaded');
+        adjustDropBoxSize();
+        hideDragText();
+      });
+    });
+  </script>
+</body>
+</html>

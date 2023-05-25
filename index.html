@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Image Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    #titleBar {
+      background-color: #f2f2f2;
+      padding: 10px;
+    }
+
+    #titleBar ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+a
+    #titleBar li {
+      margin-right: 10px;
+    }
+
+    #titleBar a {
+      text-decoration: none;
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    #titleBar a:hover {
+      background-color: #ddd;
+    }
+
+    #titleBar .active {
+      background-color: #ddd;
+    }
+
+    #content {
+      padding: 20px;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="titleBar">
+    <ul>
+      <li><a href="index.html" id="home">Home</a></li>
+      <li><a href="image_compressor.html" id="compressor">Image Compressor</a></li>
+      <li><a href="image_converter.html" id="converter">Image Converter</a></li>
+    </ul>
+  </div>
+
+  <div id="content">
+    <h1>Welcome to the Image Converter</h1>
+    <p>This is the home page of the Image Converter website.</p>
+    <p>Please select one of the options from the navigation bar to proceed.</p>
+  </div>
+
+  <script>
+    // Get the current page URL
+    var currentPage = window.location.pathname.split('/').pop();
+
+    // Find the corresponding link element and add the 'active' class
+    var linkElement = document.getElementById(currentPage.split('.')[0]);
+    if (linkElement) {
+      linkElement.classList.add('active');
+    }
+  </script>
+</body>
+</html>
